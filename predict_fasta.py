@@ -36,7 +36,7 @@ class InferenceEngineSlim(sgidspace.inference.InferenceEngine):
         """
         good_labels = [output['class_labels'][i] for i in good_indices]
         good_probs = self._signif(probs[good_indices], self.oprecision)
-        
+
         # ignore any zero labels
         good = pd.Series(good_probs, index=good_labels)
         good = good[~np.isclose(good, 0)]
@@ -61,7 +61,7 @@ class InferenceEngineSlim(sgidspace.inference.InferenceEngine):
                 output_meta = self.outputs[output_name]
                 records[rec_i][output_name] = self._format_probs(output_meta, probs_i)
         return records
-                
+
 infer_sgi = InferenceEngineSlim()
 
 def infer_batch(seqs, tfserver):
@@ -88,15 +88,13 @@ def infer_batch(seqs, tfserver):
     return pred
 
 @click.command()
-@click.argument('fasta_file')
+@click.argument('fasta_file', required=False, default='-')
 @click.option('--tfhost', default='localhost:8501')
 @click.option('--tfpath', default='/v1/models/dspace:predict')
 def import_fasta(fasta_file, tfhost, tfpath):
 
     tfserver = 'http://{}{}'.format(tfhost, tfpath)
     seqiter = read_sequences(fasta_file)
-
-    prefix = fasta_file.replace('.fasta.gz', '')
 
     for batch in grouper(seqiter):
         ids, seqs = zip(*batch)
@@ -105,7 +103,7 @@ def import_fasta(fasta_file, tfhost, tfpath):
             p['id'] = i
             p['seq'] = s
             print(p)
-        
+
 
     return
 

@@ -6,14 +6,13 @@ Some utilities for reading files and formatting sequences
 
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
-import functools
+import sys
+import gzip
 from itertools import islice, chain
 
 import numpy as np
 import Bio.SeqIO
 
-import tensorflow as tf
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import to_categorical
 
@@ -31,19 +30,25 @@ def prepare_batch(seqs):
 
 def read_sequences(fn):
     if fn.endswith('.gz'):
-        op = functools.partial(gzip.open, encoding='UTF-8')
+        fh = gzip.open(fn, 'rt', encoding='UTF-8')
+    elif fn == '-':
+        fh = sys.stdin
     else:
-        op = open
+        fh = open(fn, 'rt')
 
-    with op(fn, 'rt') as fh:
-        for r in Bio.SeqIO.parse(fh, "fasta"):
-            # if importing from uniprot
-            if r.id[2] == '|':
-                _, rec_id, _ = r.id.split('|')
-            else:
-                rec_id = r.id
-            seq = str(r.seq)
-            yield rec_id, seq
+    for r in Bio.SeqIO.parse(fh, "fasta"):
+        # if importing from uniprot
+        if r.id[2] == '|':
+            _, rec_id, _ = r.id.split('|')
+        else:
+            rec_id = r.id
+        seq = str(r.seq)
+        yield rec_id, seq
+
+    if fn != '-':
+        fh.close()
+
+    return
 
 def grouper(iterable, size=64):
     """Groups an iterable into size
