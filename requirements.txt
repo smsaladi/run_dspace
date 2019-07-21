@@ -1,0 +1,10 @@
+numpy
+pandas
+tensorflow
+
+click
+requests
+biopython
+
+git+git://github.com/smsaladi/sgidspace
+
